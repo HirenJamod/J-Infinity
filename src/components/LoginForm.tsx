@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Mail, Lock, Loader2, ArrowRight, Layers } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Mail, Lock, Loader2, ArrowRight, Layers, AlertCircle } from 'lucide-react';
 import Button from './Button';
+import { supabase } from '@/lib/supabase';
 import styles from './LoginForm.module.css';
 
 interface LoginFormProps {
@@ -12,23 +13,59 @@ interface LoginFormProps {
 
 export default function LoginForm({ type }: LoginFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
-    // Mock authentication for MVP
-    setTimeout(() => {
-      setLoading(false);
-      if (type === 'admin') {
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+
+      // Check user role in profiles table
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Validate role access
+      if (type === 'admin' && profile.role !== 'admin') {
+        await supabase.auth.signOut();
+        throw new Error('Unauthorized: Admin access required.');
+      }
+
+      if (type === 'client' && profile.role !== 'client') {
+        await supabase.auth.signOut();
+        throw new Error('Unauthorized: Please use the Client Portal login.');
+      }
+
+      // Success redirection logic
+      const redirectedFrom = searchParams.get('redirectedFrom');
+      if (redirectedFrom) {
+        router.push(redirectedFrom);
+      } else if (profile.role === 'admin') {
         router.push('/');
       } else {
         router.push('/portal');
       }
-    }, 1500);
+      
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during sign in.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,6 +80,13 @@ export default function LoginForm({ type }: LoginFormProps) {
       </div>
 
       <form onSubmit={handleLogin} className={styles.form}>
+        {error && (
+          <div className={styles.errorBanner}>
+            <AlertCircle size={18} />
+            <span>{error}</span>
+          </div>
+        )}
+
         <div className={styles.formGroup}>
           <label>Email Address</label>
           <div className={styles.inputWrapper}>

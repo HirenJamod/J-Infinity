@@ -16,13 +16,9 @@ export default function AddClientModal({ isOpen, onClose, onSuccess }: AddClient
   const [loading, setLoading] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    contact_person: '',
-    email: '',
-    phone: '',
-    business_type: '',
-    plan: 'Basic',
-    status: 'Active'
+    company_name: '',
+    status: 'onboarding',
+    subscription_tier: 'Standard'
   });
 
   if (!isOpen) return null;
@@ -36,13 +32,9 @@ export default function AddClientModal({ isOpen, onClose, onSuccess }: AddClient
         .from('clients')
         .insert([
           {
-            name: formData.name,
-            business_type: formData.business_type,
-            contact_email: formData.email,
-            // Assuming we might add phone/contact_person to schema later or store in metadata
-            // For now, let's keep it to the core schema I provided earlier
+            company_name: formData.company_name,
             status: formData.status,
-            plan: formData.plan
+            subscription_tier: formData.subscription_tier
           }
         ]);
 
@@ -73,68 +65,41 @@ export default function AddClientModal({ isOpen, onClose, onSuccess }: AddClient
           <div className={styles.successState}>
             <CheckCircle2 size={48} className={styles.successIcon} />
             <h4>Client Added!</h4>
-            <p>{formData.name} has been successfully registered.</p>
+            <p>{formData.company_name} has been successfully registered.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.grid}>
               <div className={styles.formGroup}>
-                <label>Business Name</label>
+                <label>Company Name</label>
                 <input 
                   type="text" 
                   required 
                   placeholder="e.g. Luxe Weddings"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  value={formData.company_name}
+                  onChange={(e) => setFormData({...formData, company_name: e.target.value})}
                 />
               </div>
               <div className={styles.formGroup}>
-                <label>Contact Person</label>
-                <input 
-                  type="text" 
-                  required 
-                  placeholder="e.g. John Doe"
-                  value={formData.contact_person}
-                  onChange={(e) => setFormData({...formData, contact_person: e.target.value})}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Email Address</label>
-                <input 
-                  type="email" 
-                  required 
-                  placeholder="admin@client.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Phone Number</label>
-                <input 
-                  type="tel" 
-                  placeholder="+1 234 567 890"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Business Type / Niche</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Real Estate"
-                  value={formData.business_type}
-                  onChange={(e) => setFormData({...formData, business_type: e.target.value})}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Initial Plan</label>
+                <label>Status</label>
                 <select 
-                  value={formData.plan}
-                  onChange={(e) => setFormData({...formData, plan: e.target.value})}
+                  value={formData.status}
+                  onChange={(e) => setFormData({...formData, status: e.target.value})}
                 >
-                  <option>Basic</option>
-                  <option>Standard</option>
-                  <option>Premium</option>
+                  <option value="onboarding">Onboarding</option>
+                  <option value="active">Active</option>
+                  <option value="paused">Paused</option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label>Subscription Tier</label>
+                <select 
+                  value={formData.subscription_tier}
+                  onChange={(e) => setFormData({...formData, subscription_tier: e.target.value})}
+                >
+                  <option value="Basic">Basic</option>
+                  <option value="Standard">Standard</option>
+                  <option value="Premium">Premium</option>
                 </select>
               </div>
             </div>

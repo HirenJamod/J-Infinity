@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
 import { 
@@ -35,9 +36,9 @@ export default function Dashboard() {
           { count: failedCount }
         ] = await Promise.all([
           supabase.from('clients').select('*', { count: 'exact', head: true }),
-          supabase.from('clients').select('*', { count: 'exact', head: true }).eq('status', 'Active'),
-          supabase.from('posts').select('*', { count: 'exact', head: true }).eq('status', 'Scheduled'),
-          supabase.from('posts').select('*', { count: 'exact', head: true }).eq('status', 'Failed')
+          supabase.from('clients').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+          supabase.from('posts').select('*', { count: 'exact', head: true }).eq('status', 'scheduled'),
+          supabase.from('posts').select('*', { count: 'exact', head: true }).eq('status', 'failed')
         ]);
 
         setStats({

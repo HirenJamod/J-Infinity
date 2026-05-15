@@ -9,8 +9,7 @@ services:
         value: 18.0.0
       - key: NEXT_TELEMETRY_DISABLED
         value: 1
-    # Example for Supabase integration (uncomment when ready)
-    # - key: NEXT_PUBLIC_SUPABASE_URL
-    #   sync: false
-    # - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
-    #   sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false

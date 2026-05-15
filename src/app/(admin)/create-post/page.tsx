@@ -8,6 +8,7 @@ import {
   Calendar, 
   Save,
   Check,
+  Plus,
   ChevronRight,
   Info,
   Loader2
@@ -18,8 +19,8 @@ import styles from './create-post.module.css';
 
 interface Client {
   id: string;
-  name: string;
-  plan: string;
+  company_name: string;
+  subscription_tier: string;
 }
 
 const platforms = [
@@ -34,7 +35,9 @@ export default function CreatePostPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [caption, setCaption] = useState('');
+  const [content, setContent] = useState('');
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [loadingClients, setLoadingClients] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -44,8 +47,8 @@ export default function CreatePostPage() {
         setLoadingClients(true);
         const { data, error } = await supabase
           .from('clients')
-          .select('id, name, plan')
-          .eq('status', 'Active');
+          .select('id, company_name, subscription_tier')
+          .eq('status', 'active');
         if (error) throw error;
         setClients(data || []);
       } catch (err) {
@@ -56,6 +59,26 @@ export default function CreatePostPage() {
     }
     fetchClients();
   }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setFiles(prev => [...prev, ...newFiles]);
+      
+      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+      setPreviews(prev => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviews(prev => {
+      const filtered = prev.filter((_, i) => i !== index);
+      // Revoke the URL to avoid memory leaks
+      URL.revokeObjectURL(prev[index]);
+      return filtered;
+    });
+  };
 
   const toggleClient = (id: string) => {
     setSelectedClients(prev => 
@@ -70,43 +93,60 @@ export default function CreatePostPage() {
   };
 
   const handlePublish = async () => {
-    if (selectedClients.length === 0 || selectedPlatforms.length === 0 || !caption) {
-      alert('Please select at least one client, one platform, and write a caption.');
+    if (selectedClients.length === 0 || selectedPlatforms.length === 0 || !content) {
+      alert('Please select at least one client, one platform, and write content.');
       return;
     }
 
     try {
       setIsSubmitting(true);
       
-      // 1. Create the Post record
-      const { data: post, error: postError } = await supabase
+      // 1. Upload files to Supabase Storage
+      const mediaUrls: string[] = [];
+      
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+        const filePath = `posts/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('media')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('media')
+          .getPublicUrl(filePath);
+          
+        mediaUrls.push(publicUrl);
+      }
+
+      // 2. Create the post entries for each client
+      const postEntries = selectedClients.map(clientId => ({
+        client_id: clientId,
+        content: content,
+        media_urls: mediaUrls,
+        platforms: selectedPlatforms,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      }));
+
+      const { error: postError } = await supabase
         .from('posts')
-        .insert([{ caption, status: 'Published' }])
-        .select()
-        .single();
+        .insert(postEntries);
 
       if (postError) throw postError;
 
-      // 2. Create Target records for each client/platform combination
-      const targets = selectedClients.flatMap(clientId => 
-        selectedPlatforms.map(platform => ({
-          post_id: post.id,
-          client_id: clientId,
-          platform: platform,
-          result_status: 'Published' // Mocking immediate success for MVP
-        }))
-      );
-
-      const { error: targetError } = await supabase
-        .from('post_targets')
-        .insert(targets);
-
-      if (targetError) throw targetError;
-
-      alert('Post orchestrated successfully!');
-      setCaption('');
+      alert('Post and media orchestrated! Sent to clients for approval.');
+      
+      // Reset form
+      setContent('');
+      setFiles([]);
+      setPreviews([]);
       setSelectedClients([]);
       setSelectedPlatforms([]);
+      
     } catch (err: any) {
       alert('Failed to publish post: ' + err.message);
     } finally {
@@ -123,29 +163,55 @@ export default function CreatePostPage() {
 
       <div className={styles.layout}>
         <div className={styles.editorSection}>
-          <div className={`${styles.mediaUpload} glass-card`}>
-            <div className={styles.uploadArea}>
-              <div className={styles.uploadIcons}>
-                <ImageIcon size={40} className={styles.icon} />
-                <Video size={40} className={styles.icon} />
+          <div 
+            className={`${styles.mediaUpload} glass-card`}
+            onClick={() => document.getElementById('fileInput')?.click()}
+          >
+            <input 
+              type="file" 
+              id="fileInput" 
+              multiple 
+              accept="image/*,video/*" 
+              style={{ display: 'none' }} 
+              onChange={handleFileChange}
+            />
+            {previews.length > 0 ? (
+              <div className={styles.previewGrid}>
+                {previews.map((url, i) => (
+                  <div key={i} className={styles.previewItem} onClick={(e) => e.stopPropagation()}>
+                    <img src={url} alt="Preview" />
+                    <button className={styles.removeFile} onClick={() => removeFile(i)}>×</button>
+                  </div>
+                ))}
+                <div className={styles.addMore}>
+                  <Plus size={24} />
+                  <span>Add More</span>
+                </div>
               </div>
-              <p>Drag and drop media or <strong>browse files</strong></p>
-              <span>Supports JPG, PNG, MP4 up to 50MB</span>
-            </div>
+            ) : (
+              <div className={styles.uploadArea}>
+                <div className={styles.uploadIcons}>
+                  <ImageIcon size={40} className={styles.icon} />
+                  <Video size={40} className={styles.icon} />
+                </div>
+                <p>Drag and drop media or <strong>browse files</strong></p>
+                <span>Supports JPG, PNG, MP4 up to 50MB</span>
+              </div>
+            )}
           </div>
 
           <div className={`${styles.contentArea} glass-card`}>
             <h3>Post Content</h3>
             <textarea 
-              placeholder="Write your caption here..." 
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
+              placeholder="Write your content here..." 
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
               className={styles.textarea}
             />
             <div className={styles.editorToolbar}>
               <button># Hashtags</button>
               <button>😊 Emojis</button>
-              <span>{caption.length} / 2200</span>
+              <span>{content.length} / 2200</span>
             </div>
           </div>
         </div>
@@ -175,8 +241,8 @@ export default function CreatePostPage() {
                       {selectedClients.includes(client.id) && <Check size={14} />}
                     </div>
                     <div className={styles.itemInfo}>
-                      <p>{client.name}</p>
-                      <span>{client.plan}</span>
+                      <p>{client.company_name}</p>
+                      <span>{client.subscription_tier}</span>
                     </div>
                   </div>
                 ))

@@ -1,26 +1,97 @@
+export const dynamic = 'force-dynamic';
+
 import { 
   BarChart3, 
   Share2, 
   Clock, 
   CheckCircle2,
   TrendingUp,
-  ArrowUpRight
+  ArrowUpRight,
+  AlertCircle
 } from 'lucide-react';
 import StatCard from '@/components/StatCard';
+import { supabase } from '@/lib/supabase';
 import styles from './portal.module.css';
 
-export default function ClientDashboard() {
+export default async function ClientDashboard() {
+  let user = null;
+  let client = null;
+  let totalPosts = 0;
+  let recentPosts: any[] = [];
+  let scheduledPosts: any[] = [];
+
+  try {
+    // Get current user session
+    const { data: sessionData } = await supabase.auth.getUser();
+    user = sessionData.user;
+
+    if (user) {
+      // Fetch client details
+      const { data: clientData } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('profile_id', user.id)
+        .single();
+      client = clientData;
+
+      if (client) {
+        // Fetch posts summary
+        const { count } = await supabase
+          .from('posts')
+          .select('*', { count: 'exact', head: true })
+          .eq('client_id', client.id)
+          .eq('status', 'published');
+        totalPosts = count || 0;
+
+        const { data: recent } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('client_id', client.id)
+          .order('created_at', { ascending: false })
+          .limit(3);
+        recentPosts = recent || [];
+
+        const { data: scheduled } = await supabase
+          .from('posts')
+          .select('scheduled_at')
+          .eq('client_id', client.id)
+          .eq('status', 'scheduled')
+          .order('scheduled_at', { ascending: true })
+          .limit(1);
+        scheduledPosts = scheduled || [];
+      }
+    }
+  } catch (error) {
+    console.error('Build-time or runtime data fetch error:', error);
+  }
+
+  if (!user) {
+    return (
+      <div className={styles.container}>
+        <div className="glass-card" style={{ padding: '40px', textAlign: 'center' }}>
+          <AlertCircle size={48} color="var(--accent)" style={{ marginBottom: '20px' }} />
+          <h3>Session Expired</h3>
+          <p>Please log in again to view your dashboard.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const nextPostText = scheduledPosts?.[0] 
+    ? `On ${new Date(scheduledPosts[0].scheduled_at).toLocaleDateString()}` 
+    : 'None scheduled';
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1 className="gradient-text">Welcome, Luxe Weddings</h1>
+        <h1 className="gradient-text">Welcome, {client?.company_name || 'Valued Client'}</h1>
         <p className={styles.subtitle}>Here is your social media performance overview.</p>
       </header>
 
       <section className={styles.statsGrid}>
         <StatCard 
           label="Total Posts" 
-          value="12" 
+          value={totalPosts || 0} 
           icon={CheckCircle2} 
         />
         <StatCard 
@@ -37,7 +108,7 @@ export default function ClientDashboard() {
         />
         <StatCard 
           label="Next Post" 
-          value="In 2h" 
+          value={nextPostText} 
           icon={Clock} 
         />
       </section>
@@ -65,15 +136,21 @@ export default function ClientDashboard() {
             <button className={styles.linkBtn}>View Reports <ArrowUpRight size={16} /></button>
           </div>
           <div className={styles.historyList}>
-            {[1, 2, 3].map((i) => (
-              <div key={i} className={styles.historyItem}>
-                <div className={styles.postThumb}></div>
-                <div className={styles.postInfo}>
-                  <p>Instagram Post #{i}</p>
-                  <span>Published May {15-i}, 2026</span>
+            {recentPosts && recentPosts.length > 0 ? (
+              recentPosts.map((post) => (
+                <div key={post.id} className={styles.historyItem}>
+                  <div className={styles.postThumb}>
+                    {post.media_urls?.[0] && <img src={post.media_urls[0]} alt="Post" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                  </div>
+                  <div className={styles.postInfo}>
+                    <p>{post.content?.substring(0, 30) || 'Untitled Post'}...</p>
+                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className={styles.emptyText}>No recent posts found.</p>
+            )}
           </div>
         </div>
       </div>

@@ -6,12 +6,14 @@ import {
   CreditCard, 
   Settings,
   LogOut,
-  Layers
+  Layers,
+  CheckCircle2
 } from 'lucide-react';
 import styles from './PortalSidebar.module.css';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Overview', href: '/portal' },
+  { icon: CheckCircle2, label: 'Approvals', href: '/portal/approvals' },
   { icon: Share2, label: 'Social Accounts', href: '/portal/accounts' },
   { icon: FileText, label: 'My Reports', href: '/portal/reports' },
   { icon: CreditCard, label: 'Subscription', href: '/portal/billing' },

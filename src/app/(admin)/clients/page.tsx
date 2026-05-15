@@ -9,10 +9,9 @@ import styles from './clients.module.css';
 
 interface Client {
   id: string;
-  name: string;
-  business_type: string;
+  company_name: string;
   status: string;
-  plan: string;
+  subscription_tier: string;
   created_at: string;
 }
 
@@ -69,7 +68,7 @@ export default function ClientsPage() {
         </div>
         <div className={styles.filters}>
           <select>
-            <option>All Plans</option>
+            <option>All Tiers</option>
             <option>Premium</option>
             <option>Standard</option>
             <option>Basic</option>
@@ -77,7 +76,8 @@ export default function ClientsPage() {
           <select>
             <option>All Status</option>
             <option>Active</option>
-            <option>Inactive</option>
+            <option>Paused</option>
+            <option>Onboarding</option>
           </select>
         </div>
       </div>
@@ -102,9 +102,8 @@ export default function ClientsPage() {
             <thead>
               <tr>
                 <th>Client Name</th>
-                <th>Business Type</th>
                 <th>Status</th>
-                <th>Plan</th>
+                <th>Tier</th>
                 <th>Created</th>
                 <th></th>
               </tr>
@@ -114,17 +113,16 @@ export default function ClientsPage() {
                 <tr key={client.id}>
                   <td>
                     <div className={styles.clientName}>
-                      <div className={styles.avatar}>{client.name[0]}</div>
-                      <span>{client.name}</span>
+                      <div className={styles.avatar}>{client.company_name[0]}</div>
+                      <span>{client.company_name}</span>
                     </div>
                   </td>
-                  <td>{client.business_type}</td>
                   <td>
                     <span className={`${styles.status} ${styles[client.status.toLowerCase()]}`}>
                       {client.status}
                     </span>
                   </td>
-                  <td>{client.plan}</td>
+                  <td>{client.subscription_tier}</td>
                   <td>{new Date(client.created_at).toLocaleDateString()}</td>
                   <td>
                     <div className={styles.actions}>
