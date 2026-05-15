@@ -1,8 +1,7 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { Plus, Search, MoreHorizontal, ExternalLink, Loader2 } from 'lucide-react';
 import Button from '@/components/Button';
+import AddClientModal from '@/components/AddClientModal';
 import { supabase } from '@/lib/supabase';
 import styles from './clients.module.css';
 
@@ -19,6 +18,7 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchClients();
@@ -49,10 +49,16 @@ export default function ClientsPage() {
           <h1 className="gradient-text">Clients Management</h1>
           <p className={styles.subtitle}>Manage your clients and their social media connections.</p>
         </div>
-        <Button onClick={() => alert('Add Client modal coming soon!')}>
+        <Button onClick={() => setIsModalOpen(true)}>
           <Plus size={18} /> Add New Client
         </Button>
       </header>
+
+      <AddClientModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={fetchClients} 
+      />
 
       <div className={`${styles.toolbar} glass-panel`}>
         <div className={styles.searchBox}>
