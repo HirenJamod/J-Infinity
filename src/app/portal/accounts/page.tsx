@@ -1,4 +1,6 @@
-import { Plus, Instagram, Facebook, Twitter, Video, Linkedin, Link as LinkIcon, RefreshCw } from 'lucide-react';
+'use client';
+
+import { Plus, Instagram, Facebook, Twitter, Youtube, Linkedin, Link as LinkIcon, RefreshCw } from 'lucide-react';
 import Button from '@/components/Button';
 import styles from './accounts.module.css';
 
@@ -6,7 +8,7 @@ const platforms = [
   { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', connected: true, handle: '@luxe_weddings' },
   { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2', connected: true, handle: 'Luxe Weddings FB' },
   { id: 'x', name: 'X / Twitter', icon: Twitter, color: '#000000', connected: false },
-  { id: 'youtube', name: 'YouTube', icon: Video, color: '#FF0000', connected: true, handle: 'Luxe Weddings TV' },
+  { id: 'youtube', name: 'YouTube', icon: Youtube, color: '#FF0000', connected: true, handle: 'Luxe Weddings TV' },
   { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', connected: false },
 ];
 
