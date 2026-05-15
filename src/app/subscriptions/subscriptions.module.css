@@ -1,0 +1,168 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+}
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.planCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.popular {
+  border-color: var(--accent);
+  box-shadow: 0 0 30px var(--accent-glow);
+}
+
+.badge {
+  position: absolute;
+  top: -12px;
+  right: 24px;
+  background: var(--accent);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.planHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.iconBox {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.planHeader h3 {
+  font-size: 1.5rem;
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.price span {
+  font-size: 2.5rem;
+  font-weight: 800;
+}
+
+.price small {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  margin-bottom: 32px;
+}
+
+.features li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+}
+
+.features li svg {
+  color: #10b981;
+}
+
+.planButton {
+  width: 100%;
+}
+
+.recentPayments {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.paymentTable {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tableRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  transition: var(--transition-smooth);
+}
+
+.tableRow:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.clientInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.clientInfo strong {
+  font-size: 1rem;
+}
+
+.clientInfo span {
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.statusBox {
+  text-align: right;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 4px;
+  display: inline-block;
+}
+
+.paid {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.statusBox p {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.3);
+}
