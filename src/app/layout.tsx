@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
-import Sidebar from "@/components/Sidebar";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -21,12 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={outfit.variable}>
-        <div className="admin-layout">
-          <Sidebar />
-          <main className="main-content">
-            {children}
-          </main>
-        </div>
+        {children}
       </body>
     </html>
   );
