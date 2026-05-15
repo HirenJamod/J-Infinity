@@ -1,0 +1,113 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.header h1 {
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.1rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr;
+  gap: 24px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent);
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.mockChart {
+  height: 200px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.chartBar {
+  flex: 1;
+  background: linear-gradient(to top, var(--accent), #a5b4fc);
+  border-radius: 6px 6px 0 0;
+  opacity: 0.8;
+  transition: var(--transition-smooth);
+}
+
+.chartBar:hover {
+  opacity: 1;
+  transform: scaleX(1.1);
+}
+
+.linkBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+}
+
+.postThumb {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.postInfo p {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.postInfo span {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+@media (max-width: 1100px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}

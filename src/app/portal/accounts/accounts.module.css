@@ -1,0 +1,100 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.iconBox {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.connected {
+  color: #10b981;
+}
+
+.disconnected {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.cardBody h3 {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+
+.handle {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.desc {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.5;
+}
+
+.cardFooter {
+  margin-top: auto;
+}
+
+.connectedActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.refreshBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  transition: var(--transition-smooth);
+}
+
+.refreshBtn:hover {
+  color: #fff;
+}
+
+.actionBtn {
+  width: 100%;
+}
+
+.connectedActions .actionBtn {
+  width: auto;
+}
