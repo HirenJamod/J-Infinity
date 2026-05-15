@@ -1,15 +1,47 @@
-import { Plus, Search, MoreHorizontal, ExternalLink } from 'lucide-react';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Plus, Search, MoreHorizontal, ExternalLink, Loader2 } from 'lucide-react';
 import Button from '@/components/Button';
+import { supabase } from '@/lib/supabase';
 import styles from './clients.module.css';
 
-const clients = [
-  { id: 1, name: 'Luxe Weddings', business: 'Event Planning', status: 'Active', plan: 'Premium', posts: 42, platforms: ['Instagram', 'Facebook'] },
-  { id: 2, name: 'TechFlow Solutions', business: 'SaaS', status: 'Active', plan: 'Standard', posts: 15, platforms: ['LinkedIn', 'X'] },
-  { id: 3, name: 'Green Garden', business: 'E-commerce', status: 'Inactive', plan: 'Basic', posts: 0, platforms: ['Instagram'] },
-  { id: 4, name: 'FitLife Gym', business: 'Fitness', status: 'Active', plan: 'Premium', posts: 89, platforms: ['YouTube', 'Instagram', 'Facebook'] },
-];
+interface Client {
+  id: string;
+  name: string;
+  business_type: string;
+  status: string;
+  plan: string;
+  created_at: string;
+}
 
 export default function ClientsPage() {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
+  async function fetchClients() {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (err: any) {
+      console.error('Error fetching clients:', err.message);
+      setError('Failed to load clients. Please check your Supabase connection.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -17,7 +49,7 @@ export default function ClientsPage() {
           <h1 className="gradient-text">Clients Management</h1>
           <p className={styles.subtitle}>Manage your clients and their social media connections.</p>
         </div>
-        <Button>
+        <Button onClick={() => alert('Add Client modal coming soon!')}>
           <Plus size={18} /> Add New Client
         </Button>
       </header>
@@ -43,52 +75,60 @@ export default function ClientsPage() {
       </div>
 
       <div className={`${styles.tableWrapper} glass-card`}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Client Name</th>
-              <th>Business Type</th>
-              <th>Status</th>
-              <th>Plan</th>
-              <th>Total Posts</th>
-              <th>Platforms</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {clients.map((client) => (
-              <tr key={client.id}>
-                <td>
-                  <div className={styles.clientName}>
-                    <div className={styles.avatar}>{client.name[0]}</div>
-                    <span>{client.name}</span>
-                  </div>
-                </td>
-                <td>{client.business}</td>
-                <td>
-                  <span className={`${styles.status} ${styles[client.status.toLowerCase()]}`}>
-                    {client.status}
-                  </span>
-                </td>
-                <td>{client.plan}</td>
-                <td>{client.posts}</td>
-                <td>
-                  <div className={styles.platforms}>
-                    {client.platforms.map(p => (
-                      <span key={p} className={styles.platformBadge}>{p}</span>
-                    ))}
-                  </div>
-                </td>
-                <td>
-                  <div className={styles.actions}>
-                    <button className={styles.iconButton}><ExternalLink size={16} /></button>
-                    <button className={styles.iconButton}><MoreHorizontal size={16} /></button>
-                  </div>
-                </td>
+        {loading ? (
+          <div className={styles.loader}>
+            <Loader2 className={styles.spin} />
+            <p>Fetching clients from Supabase...</p>
+          </div>
+        ) : error ? (
+          <div className={styles.error}>
+            <p>{error}</p>
+            <Button variant="outline" onClick={fetchClients} size="sm">Retry</Button>
+          </div>
+        ) : clients.length === 0 ? (
+          <div className={styles.empty}>
+            <p>No clients found. Add your first client to get started!</p>
+          </div>
+        ) : (
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Client Name</th>
+                <th>Business Type</th>
+                <th>Status</th>
+                <th>Plan</th>
+                <th>Created</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {clients.map((client) => (
+                <tr key={client.id}>
+                  <td>
+                    <div className={styles.clientName}>
+                      <div className={styles.avatar}>{client.name[0]}</div>
+                      <span>{client.name}</span>
+                    </div>
+                  </td>
+                  <td>{client.business_type}</td>
+                  <td>
+                    <span className={`${styles.status} ${styles[client.status.toLowerCase()]}`}>
+                      {client.status}
+                    </span>
+                  </td>
+                  <td>{client.plan}</td>
+                  <td>{new Date(client.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <div className={styles.actions}>
+                      <button className={styles.iconButton}><ExternalLink size={16} /></button>
+                      <button className={styles.iconButton}><MoreHorizontal size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

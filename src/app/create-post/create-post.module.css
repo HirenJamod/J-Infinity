@@ -241,6 +241,32 @@
 .fullWidth { width: 100%; }
 .halfWidth { width: 50%; }
 
+.loaderSmall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.85rem;
+}
+
+.emptyMsg {
+  text-align: center;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.85rem;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 1200px) {
   .layout {
     grid-template-columns: 1fr;

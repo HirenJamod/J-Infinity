@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Image as ImageIcon, 
   Video, 
@@ -9,17 +9,18 @@ import {
   Save,
   Check,
   ChevronRight,
-  Info
+  Info,
+  Loader2
 } from 'lucide-react';
 import Button from '@/components/Button';
+import { supabase } from '@/lib/supabase';
 import styles from './create-post.module.css';
 
-const clients = [
-  { id: 1, name: 'Luxe Weddings', plan: 'Premium' },
-  { id: 2, name: 'TechFlow Solutions', plan: 'Standard' },
-  { id: 3, name: 'Green Garden', plan: 'Basic' },
-  { id: 4, name: 'FitLife Gym', plan: 'Premium' },
-];
+interface Client {
+  id: string;
+  name: string;
+  plan: string;
+}
 
 const platforms = [
   { id: 'instagram', name: 'Instagram', icon: '📸' },
@@ -30,11 +31,33 @@ const platforms = [
 ];
 
 export default function CreatePostPage() {
-  const [selectedClients, setSelectedClients] = useState<number[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [caption, setCaption] = useState('');
+  const [loadingClients, setLoadingClients] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const toggleClient = (id: number) => {
+  useEffect(() => {
+    async function fetchClients() {
+      try {
+        setLoadingClients(true);
+        const { data, error } = await supabase
+          .from('clients')
+          .select('id, name, plan')
+          .eq('status', 'Active');
+        if (error) throw error;
+        setClients(data || []);
+      } catch (err) {
+        console.error('Error fetching clients:', err);
+      } finally {
+        setLoadingClients(false);
+      }
+    }
+    fetchClients();
+  }, []);
+
+  const toggleClient = (id: string) => {
     setSelectedClients(prev => 
       prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
     );
@@ -44,6 +67,51 @@ export default function CreatePostPage() {
     setSelectedPlatforms(prev => 
       prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
     );
+  };
+
+  const handlePublish = async () => {
+    if (selectedClients.length === 0 || selectedPlatforms.length === 0 || !caption) {
+      alert('Please select at least one client, one platform, and write a caption.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      // 1. Create the Post record
+      const { data: post, error: postError } = await supabase
+        .from('posts')
+        .insert([{ caption, status: 'Published' }])
+        .select()
+        .single();
+
+      if (postError) throw postError;
+
+      // 2. Create Target records for each client/platform combination
+      const targets = selectedClients.flatMap(clientId => 
+        selectedPlatforms.map(platform => ({
+          post_id: post.id,
+          client_id: clientId,
+          platform: platform,
+          result_status: 'Published' // Mocking immediate success for MVP
+        }))
+      );
+
+      const { error: targetError } = await supabase
+        .from('post_targets')
+        .insert(targets);
+
+      if (targetError) throw targetError;
+
+      alert('Post orchestrated successfully!');
+      setCaption('');
+      setSelectedClients([]);
+      setSelectedPlatforms([]);
+    } catch (err: any) {
+      alert('Failed to publish post: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -89,21 +157,30 @@ export default function CreatePostPage() {
               <span>{selectedClients.length} selected</span>
             </div>
             <div className={styles.clientList}>
-              {clients.map(client => (
-                <div 
-                  key={client.id} 
-                  className={`${styles.selectableItem} ${selectedClients.includes(client.id) ? styles.selected : ''}`}
-                  onClick={() => toggleClient(client.id)}
-                >
-                  <div className={styles.checkbox}>
-                    {selectedClients.includes(client.id) && <Check size={14} />}
-                  </div>
-                  <div className={styles.itemInfo}>
-                    <p>{client.name}</p>
-                    <span>{client.plan}</span>
-                  </div>
+              {loadingClients ? (
+                <div className={styles.loaderSmall}>
+                  <Loader2 className={styles.spin} size={16} />
+                  <span>Loading clients...</span>
                 </div>
-              ))}
+              ) : clients.length === 0 ? (
+                <p className={styles.emptyMsg}>No active clients found.</p>
+              ) : (
+                clients.map(client => (
+                  <div 
+                    key={client.id} 
+                    className={`${styles.selectableItem} ${selectedClients.includes(client.id) ? styles.selected : ''}`}
+                    onClick={() => toggleClient(client.id)}
+                  >
+                    <div className={styles.checkbox}>
+                      {selectedClients.includes(client.id) && <Check size={14} />}
+                    </div>
+                    <div className={styles.itemInfo}>
+                      <p>{client.name}</p>
+                      <span>{client.plan}</span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -132,14 +209,19 @@ export default function CreatePostPage() {
               <p>Post will be queued for <strong>{selectedClients.length} clients</strong> on <strong>{selectedPlatforms.length} platforms</strong>.</p>
             </div>
             <div className={styles.actions}>
-              <Button className={styles.fullWidth}>
-                <Send size={18} /> Publish Now
+              <Button 
+                className={styles.fullWidth} 
+                onClick={handlePublish}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? <Loader2 className={styles.spin} size={18} /> : <Send size={18} />}
+                {isSubmitting ? 'Publishing...' : 'Publish Now'}
               </Button>
               <div className={styles.secondaryActions}>
-                <Button variant="secondary" className={styles.halfWidth}>
+                <Button variant="secondary" className={styles.halfWidth} disabled={isSubmitting}>
                   <Calendar size={18} /> Schedule
                 </Button>
-                <Button variant="outline" className={styles.halfWidth}>
+                <Button variant="outline" className={styles.halfWidth} disabled={isSubmitting}>
                   <Save size={18} /> Draft
                 </Button>
               </div>
